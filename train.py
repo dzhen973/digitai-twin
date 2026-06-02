@@ -27,7 +27,32 @@ train_df, valid_df = train_test_split(
     stratify=df['Irrigation_Need']
 )
 
-"""## 2. Feature Engineering"""
+"""## 2. Data preparation & Feature Engineering"""
+# Missing values
+missing_df = (
+    df.isnull()
+    .sum()
+    .sort_values(ascending=False)
+    .reset_index()
+)
+missing_df.columns = ['Feature', 'Missing Count']
+
+total_missing = missing_df['Missing Count'].sum()
+
+if total_missing == 0:
+    print("No missing values found.")
+else:
+    print("Missing values detected:")
+    print(missing_df[missing_df['Missing Count'] > 0])
+
+# Duplicate rows
+duplicate_count = df.duplicated().sum()
+
+if duplicate_count == 0:
+    print("No duplicate rows found.")
+else:
+    print(f"Duplicate rows: {duplicate_count}")
+print("=" * 60)
 
 cat_cols = ['Soil_Type', 'Crop_Type', 'Crop_Growth_Stage', 'Season',
             'Irrigation_Type', 'Water_Source', 'Mulching_Used', 'Region']
@@ -44,7 +69,7 @@ def engineer_features(df, moisture_map=None):
     # Water balance features
     df['Total_Water_Input'] = df['Rainfall_mm'] + df['Previous_Irrigation_mm']
     df['Evaporative_Stress'] = (df['Temperature_C'] * df['Sunlight_Hours'] * df['Wind_Speed_kmh']) / (
-                df['Humidity'] + 1)
+            df['Humidity'] + 1)
     df['Moisture_Deficit'] = df['Humidity'] - df['Soil_Moisture']
     df['Water_Balance'] = df['Total_Water_Input'] - df['Evaporative_Stress'] * df['Field_Area_hectare']
 

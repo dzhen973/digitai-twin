@@ -3,6 +3,9 @@ import pandas as pd
 import numpy as np
 import joblib
 
+from datetime import datetime
+import streamlit.components.v1 as components
+
 from config import DATA_PATH, MODEL_PATH
 
 # ==========================
@@ -166,10 +169,29 @@ reverse_mapping = {
 # ==========================
 # Button
 # ==========================
-if st.button("🔄 Generate Sensor Data"):
+if "last_updated" not in st.session_state:
+    st.session_state.last_updated = None
+
+col1, col2 = st.columns([1, 1])
+
+with col1:
+    generate = st.button("🔄 Generate Sensor Data")
+
+if generate:
+    st.session_state.last_updated = (
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    )
+
+with col2:
+    if st.session_state.last_updated:
+        st.markdown(
+            f"**Last Updated:** {st.session_state.last_updated}"
+        )
+
+if generate:
 
     sample_df = df.sample(
-        3,
+        10,
         random_state=np.random.randint(10000)
     ).copy()
 
@@ -222,6 +244,21 @@ if st.button("🔄 Generate Sensor Data"):
         reverse_mapping[int(p)]
         for p in preds
     ]
+
+    # Alert if any High prediction exists
+    if "High" in result_df["Prediction"].values:
+        st.error(
+            "⚠️ ALERT: High irrigation demand detected! Immediate attention required."
+        )
+
+        components.html(
+            """
+            <script>
+            alert("WARNING: High irrigation demand detected!");
+            </script>
+            """,
+            height=0
+        )
 
     st.subheader("🤖 AI Prediction Results")
     st.dataframe(result_df)

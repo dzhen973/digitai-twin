@@ -7,16 +7,15 @@ df = pd.read_csv(DATA_PATH)
 
 # 1. Data overview
 print("=" * 60)
-print("DATA OVERVIEW")
+print("Data overview")
 print("=" * 60)
 df.info()
 print("\n")
 print(df.describe().T)
 
-# 2. Missing Values
+# 2. Missing values
 print("=" * 60)
-print("MISSING VALUES")
-print("=" * 60)
+print("Missing values check")
 
 missing_df = (
     df.isnull()
@@ -24,25 +23,25 @@ missing_df = (
     .sort_values(ascending=False)
     .reset_index()
 )
-
 missing_df.columns = ['Feature', 'Missing Count']
 
-print(missing_df)
-print()
+total_missing = missing_df['Missing Count'].sum()
 
-# 3. Duplicate Rows
-print("=" * 60)
-print("DUPLICATE ROWS")
-print("=" * 60)
+if total_missing == 0:
+    print("No missing values found.")
+else:
+    print("Missing values detected:")
+    print(missing_df[missing_df['Missing Count'] > 0])
 
+# 3. Duplicate rows
+print("=" * 60)
+print("Duplicate rows check")
 duplicate_count = df.duplicated().sum()
 
-print(f"Duplicate rows: {duplicate_count}")
-print()
-
-# Categorical & Numerical Features
-print("=" * 60)
-print("FEATURE TYPES")
+if duplicate_count == 0:
+    print("No duplicate rows found.")
+else:
+    print(f"Duplicate rows: {duplicate_count}")
 print("=" * 60)
 
 categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
@@ -86,5 +85,17 @@ for i, target in enumerate(['Low', 'Medium', 'High']):
     axes[i].legend()
 
 plt.suptitle('Soil_Moisture Distribution by Target', fontsize=13, fontweight='bold')
+plt.tight_layout()
+plt.show()
+
+# 6. rainfall_mm analysis (critical feature)
+fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+
+for i, target in enumerate(['Low', 'Medium', 'High']):
+    data = df[df['Irrigation_Need'] == target]['Rainfall_mm']
+    axes[i].hist(data, bins=40, alpha=0.7, color=colors[i], edgecolor='black')
+    axes[i].set_title(f'Rainfall_mm: {target}', fontsize=11, fontweight='bold')
+
+plt.suptitle('Rainfall_mm Distribution by Target', fontsize=13, fontweight='bold')
 plt.tight_layout()
 plt.show()
